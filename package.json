@@ -1,0 +1,16 @@
+{
+  "name": "gimnasio-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PWA para registro y control de pagos de gimnasio.",
+  "dependencies": {
+    "idb": "^8.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "workbox-window": "^7.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  }
+}

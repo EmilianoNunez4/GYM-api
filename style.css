@@ -1,0 +1,317 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f3f6fb;
+    margin: 0;
+    min-height: 100vh;
+    font-size: 1.16em;
+    line-height: 1.6;
+}
+.container {
+    background: #fff;
+    max-width: 940px;
+    margin: 42px auto 38px auto;
+    border-radius: 22px;
+    padding: 48px 36px 40px 36px;
+    box-shadow: 0 6px 32px rgba(52,99,190,0.13), 0 2px 7px rgba(0,0,0,0.10);
+    transition: box-shadow 0.2s;
+}
+h2, h3 {
+    color: #194066;
+    margin-top: 0;
+    font-size: 2.1em;
+    letter-spacing: 0.01em;
+}
+h3 {
+    font-size: 1.4em;
+    margin-bottom: 18px;
+}
+
+form#form-persona {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 28px;
+}
+form#form-persona input[type="text"],
+form#form-persona input[type="number"],
+form#form-persona select,
+form#form-persona input[type="date"],
+form#form-persona input[type="month"] {
+    padding: 15px 14px;
+    border-radius: 10px;
+    border: 2px solid #dbe7fb;
+    background: #f8fbff;
+    outline: none;
+    font-size: 1.12em;
+    transition: border 0.2s, box-shadow 0.2s;
+    min-width: 210px;
+    flex: 1 1 210px;
+    box-sizing: border-box;
+}
+form#form-persona input:focus, form#form-persona select:focus {
+    border: 2px solid #3788fc;
+    box-shadow: 0 0 0 2px #e5f2ff;
+}
+form#form-persona button {
+    background: linear-gradient(90deg, #3788fc 60%, #1d6ed6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 36px;
+    font-size: 1.15em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.2s;
+    flex: 1 1 140px;
+    min-width: 140px;
+    box-shadow: 0 2px 10px rgba(52,99,190,0.10);
+}
+form#form-persona button:hover {
+    background: linear-gradient(90deg, #2663b8 60%, #194066 100%);
+    box-shadow: 0 3px 14px rgba(52,99,190,0.18);
+}
+
+/* Filtro estilo */
+.filtro-actividad-container {
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #f0f6ff;
+    border-radius: 14px;
+    padding: 20px 28px 20px 20px;
+    box-shadow: 0 1px 6px rgba(52,99,190,0.05);
+    flex-wrap: wrap;
+    font-size: 1.12em;
+}
+#filtro-actividad {
+    padding: 13px 18px;
+    border-radius: 10px;
+    border: 2px solid #b7cef7;
+    background: #fff;
+    font-size: 1.12em;
+    color: #2663b8;
+    font-weight: 600;
+    transition: border 0.18s, box-shadow 0.18s;
+    min-width: 180px;
+    outline: none;
+    box-shadow: 0 0.5px 2px rgba(52,99,190,0.05);
+}
+#filtro-actividad:focus {
+    border: 2px solid #3788fc;
+    box-shadow: 0 0 0 2px #e5f2ff;
+}
+#total-personas {
+    margin-left: auto;
+    font-size: 1.21em;
+    color: #194066;
+    font-weight: bold;
+    background: #e6fbe6;
+    padding: 10px 28px;
+    border-radius: 24px;
+    box-shadow: 0 1px 8px rgba(22,187,93,0.08);
+    letter-spacing: 0.04em;
+}
+#btn-exportar-excel {
+    background: linear-gradient(90deg,#16bb5d 60%,#0f9b4b 100%);
+    color:#fff;
+    border:none;
+    border-radius:11px;
+    padding:14px 30px;
+    font-size:1.18em;
+    font-weight:600;
+    cursor:pointer;
+    transition:background 0.16s, box-shadow 0.16s;
+    box-shadow:0 2px 9px rgba(0,0,0,0.11);
+    margin-bottom: 16px;
+}
+#btn-exportar-excel:hover {
+    background: linear-gradient(90deg, #0f9b4b 60%, #16bb5d 100%);
+    box-shadow: 0 2px 14px #c9eeda;
+}
+
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin-top: 22px;
+    justify-content: flex-start;
+}
+.card-persona {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.16);
+    padding: 28px 28px 20px 28px;
+    min-width: 260px;
+    max-width: 340px;
+    border: 3px solid #e1e8f5;
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: border 0.2s, background 0.2s, box-shadow 0.18s;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 1.08em;
+}
+.card-persona:hover {
+    box-shadow: 0 6px 30px rgba(52,99,190,0.15);
+    border-width: 4px;
+}
+.card-persona.estado-al-dia {
+    border-color: #16bb5d;
+    background: linear-gradient(120deg, #e2fbe8 70%, #f8fffb 100%);
+}
+.card-persona.estado-por-vencer {
+    border-color: #ffe066;
+    background: linear-gradient(120deg, #fffad1 70%, #fffdeb 100%);
+}
+.card-persona.estado-en-falta {
+    border-color: #e74c3c;
+    background: linear-gradient(120deg, #ffe7e7 70%, #fff6f6 100%);
+}
+.card-persona .estado-label {
+    font-weight: bold;
+    font-size: 1.18em;
+    display: inline-block;
+    margin-bottom: 11px;
+    padding: 3px 18px 5px 18px;
+    border-radius: 14px;
+    letter-spacing: 0.01em;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.card-persona .estado-label.verde {
+    color: #fff; background: #16bb5d;
+}
+.card-persona .estado-label.amarillo {
+    color: #333; background: #ffe066;
+}
+.card-persona .estado-label.rojo {
+    color: #fff; background: #e74c3c;
+}
+.card-persona div {
+    margin-bottom: 7px;
+    font-size: 1.05em;
+}
+.card-persona .card-actions {
+    margin-top: 12px;
+}
+.card-persona button {
+    background: linear-gradient(90deg, #16bb5d 60%, #0f9b4b 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 1.11em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 7px;
+    transition: background 0.16s, box-shadow 0.14s;
+    box-shadow: 0 1px 6px rgba(52,99,190,0.12);
+}
+.card-persona button:hover {
+    background: linear-gradient(90deg, #0f9b4b 60%, #16bb5d 100%);
+    box-shadow: 0 2px 14px #c9eeda;
+}
+
+/* Modal responsive */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    padding-top: 60px; 
+    left: 0; top: 0; width: 100%; height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.22); 
+}
+.modal-content {
+    background-color: #f9fafe;
+    margin: auto;
+    padding: 34px 36px 22px 36px;
+    border: 1px solid #b6c6e0;
+    width: 97%;
+    max-width: 510px;
+    border-radius: 18px;
+    box-shadow: 0 8px 38px rgba(43,72,111,0.16);
+    animation: mostrarModal 0.2s;
+    font-size: 1.12em;
+}
+@keyframes mostrarModal {
+    from { transform: scale(0.97); opacity: 0.7; }
+    to   { transform: scale(1); opacity: 1; }
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 34px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: -10px;
+}
+.close:hover, .close:focus { color: #e74c3c; }
+label { display: block; margin: 10px 0 8px 0; color: #194066; font-weight: 600;}
+input[type="month"], input[type="number"] {
+    margin-bottom: 12px;
+}
+form#form-pago button {
+    background: linear-gradient(90deg, #3788fc 60%, #1d6ed6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 12px 28px;
+    font-size: 1.13em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 12px;
+    box-shadow: 0 2px 9px rgba(52,99,190,0.10);
+}
+form#form-pago button:hover {
+    background: linear-gradient(90deg, #2663b8 60%, #194066 100%);
+}
+
+@media (max-width: 1050px) {
+    .container { max-width: 99vw; padding: 6vw 2vw; }
+    .cards-container { gap: 20px; }
+    .card-persona { min-width: 150px; max-width: 98vw; }
+}
+@media (max-width: 760px) {
+    .container { padding: 2vw 1vw; }
+    .cards-container { flex-direction: column; gap: 18px; }
+    .card-persona { min-width: 0; max-width: 100%; }
+    .filtro-actividad-container { 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 11px; 
+        padding: 14px 8px 14px 8px;
+        font-size: 1.08em;
+    }
+    form#form-persona {
+        flex-direction: column;
+        gap: 11px;
+        align-items: stretch;
+    }
+    #total-personas {
+        margin-left: 0; margin-top: 6px;
+        text-align: left;
+        display: block;
+    }
+    #btn-exportar-excel {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+}
+@media (max-width: 500px) {
+    .container { padding: 1px 0; border-radius: 0; }
+    .modal-content { padding: 7vw 2vw; }
+    form#form-persona input,
+    form#form-persona select,
+    form#form-persona button {
+        min-width: 0;
+        width: 100%;
+        font-size: 1.06em;
+    }
+    .card-persona { padding: 18px 7vw 14px 7vw; }
+    .modal-content { font-size: 1em; }
+}
