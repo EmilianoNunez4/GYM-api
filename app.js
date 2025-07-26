@@ -23,6 +23,49 @@ function openDB() {
     });
 }
 
+// ------ NUEVO: función para marcar persona como eliminada ------
+async function marcarPersonaEliminada(personaId) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("personas", "readwrite");
+        const store = tx.objectStore("personas");
+        const req = store.get(personaId);
+        req.onsuccess = function() {
+            const persona = req.result;
+            if (persona) {
+                persona.eliminado = true;
+                const updateReq = store.put(persona);
+                updateReq.onsuccess = () => resolve();
+                updateReq.onerror = () => reject(updateReq.error);
+            } else {
+                reject("No se encontró la persona.");
+            }
+        };
+        req.onerror = () => reject(req.error);
+    });
+}
+
+// ------ NUEVO: función para obtener solo personas eliminadas ------
+async function obtenerPersonasEliminadas() {
+    const db = await openDB();
+    return new Promise((resolve) => {
+        const tx = db.transaction("personas", "readonly");
+        const store = tx.objectStore("personas");
+        const personasEliminadas = [];
+        store.openCursor().onsuccess = function(e) {
+            const cursor = e.target.result;
+            if (cursor) {
+                if (cursor.value.eliminado) {
+                    personasEliminadas.push(cursor.value);
+                }
+                cursor.continue();
+            } else {
+                resolve(personasEliminadas);
+            }
+        };
+    });
+}
+
 async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesRegistro) {
     const db = await openDB();
     if (!fechaAlta) {
@@ -43,7 +86,8 @@ async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesReg
             fechaAlta, 
             mesRegistro, 
             fechaHoraRegistro, 
-            montoInicial: montoInicial || null 
+            montoInicial: montoInicial || null,
+            eliminado: false // <--- campo agregado
         });
         req.onsuccess = async () => {
             if (montoInicial && montoInicial > 0) {
@@ -55,6 +99,8 @@ async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesReg
         req.onerror = () => reject(req.error);
     });
 }
+
+// ------ MODIFICADO: obtenerPersonas solo muestra no eliminadas ------
 async function obtenerPersonas() {
     const db = await openDB();
     return new Promise((resolve) => {
@@ -64,7 +110,9 @@ async function obtenerPersonas() {
         store.openCursor().onsuccess = function(e) {
             const cursor = e.target.result;
             if (cursor) {
-                personas.push(cursor.value);
+                if (!cursor.value.eliminado) { // <--- solo no eliminadas
+                    personas.push(cursor.value);
+                }
                 cursor.continue();
             } else {
                 resolve(personas);
@@ -72,6 +120,7 @@ async function obtenerPersonas() {
         };
     });
 }
+
 async function agregarPago(personaId, mes, monto, fechaHoraManual = null) {
     const db = await openDB();
     const fechaHora = fechaHoraManual || new Date().toISOString();
@@ -169,6 +218,54 @@ if (inputMesRegistro) {
     inputMesRegistro.value = today.toISOString().slice(0,7);
 }
 
+// ------ NUEVO: sección para personas dadas de baja ------
+const cardsPersonasBaja = document.createElement("div");
+cardsPersonasBaja.id = "cards-personas-baja";
+cardsPersonasBaja.style.marginTop = "40px";
+cardsPersonasBaja.innerHTML = `
+    <h3 style="color: #777;">Personas dadas de baja</h3>
+    <div id="cards-baja-list"></div>
+`;
+cardsPersonas.parentNode.insertBefore(cardsPersonasBaja, cardsPersonas.nextSibling);
+
+// ------ NUEVO: renderizar cards de bajas ------
+async function refrescarCardsBaja() {
+    const personasEliminadas = await obtenerPersonasEliminadas();
+    const cardsBajaList = document.getElementById("cards-baja-list");
+    cardsBajaList.innerHTML = "";
+
+    for (const persona of personasEliminadas) {
+        const pagos = await obtenerPagosPorPersona(persona.id);
+        const div = document.createElement("div");
+        div.className = "card-persona card-baja";
+        div.style.background = "#f4f4f4";
+        div.style.border = "1px solid #ccc";
+        div.style.color = "#888";
+        div.style.marginBottom = "15px";
+        div.style.padding = "15px";
+        div.innerHTML = `
+            <span class="estado-label" style="background:#ccc;color:#444;">Dado de baja</span>
+            <div><b>Nombre:</b> ${persona.nombre}</div>
+            <div><b>Actividad:</b> ${persona.actividad || ""}</div>
+            <div><b>Fecha alta:</b> ${formatFecha(persona.fechaAlta)}</div>
+            <div><b>Mes de registro:</b> ${nombreMesEsp(persona.mesRegistro)}</div>
+            ${persona.montoInicial ? `<div><b>Monto inicial:</b> $${parseFloat(persona.montoInicial).toLocaleString()}</div>` : ""}
+            <div style="margin-top:8px;">
+                <b>Cuotas abonadas:</b>
+                <ul style="margin:0;padding-left:20px;">
+                    ${pagos.length === 0 ? "<li style='color:#bbb;'>Sin pagos</li>" : pagos.map(pago => `
+                        <li>
+                          ${nombreMesEsp(pago.mes)} — $${parseFloat(pago.monto).toLocaleString()} — ${formatFechaHora(pago.fechaHora)}
+                        </li>
+                    `).join("")}
+                </ul>
+            </div>
+        `;
+        cardsBajaList.appendChild(div);
+    }
+}
+
+// ------ MODIFICADO: refrescarCards también actualiza bajas ------
 async function refrescarCards() {
     const personas = await obtenerPersonas();
     // Filtrado:
@@ -195,15 +292,26 @@ async function refrescarCards() {
             ${persona.montoInicial ? `<div><b>Monto inicial:</b> $${parseFloat(persona.montoInicial).toLocaleString()}</div>` : ""}
             <div class="card-actions">
                 <button data-id="${persona.id}" data-nombre="${persona.nombre}">Registrar Pago / Ver Pagos</button>
+                <button data-id="${persona.id}" class="btn-baja">Dar de baja</button>
             </div>
         `;
-        div.querySelector("button").onclick = () => {
+        div.querySelector("button[data-nombre]").onclick = () => {
             pagadorActual = { id: persona.id, nombre: persona.nombre };
             abrirModalPago();
         };
+        // NUEVO: botón dar de baja
+        div.querySelector(".btn-baja").onclick = async () => {
+            if (confirm("¿Seguro que quieres dar de baja a esta persona?")) {
+                await marcarPersonaEliminada(persona.id);
+                await refrescarCards();
+            }
+        };
         cardsPersonas.appendChild(div);
     }
+    // Actualiza la sección de bajas
+    await refrescarCardsBaja();
 }
+
 formPersona.onsubmit = async function(e) {
     e.preventDefault();
     const nombre = inputNombre.value.trim();
