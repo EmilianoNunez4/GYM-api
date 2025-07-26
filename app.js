@@ -417,3 +417,37 @@ document.getElementById("btn-exportar-excel").onclick = async function() {
     XLSX.utils.book_append_sheet(wb, ws, "Gimnasio");
     XLSX.writeFile(wb, "gimnasio_registros.xlsx");
 };
+
+const toggleBtn = document.getElementById("toggle-dark");
+
+// Función para actualizar el ícono del botón
+function updateToggleIcon(isDark) {
+  toggleBtn.textContent = isDark ? "☀️" : "🌙";
+}
+
+function setTheme(theme) {
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark-mode");
+    updateToggleIcon(true);
+  } else {
+    document.documentElement.classList.remove("dark-mode");
+    updateToggleIcon(false);
+  }
+}
+
+// Al iniciar, lee la preferencia del usuario o la del sistema
+(function() {
+  let theme = localStorage.getItem("theme");
+  if (!theme) {
+    // Si no hay preferencia, usa la del sistema
+    theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  setTheme(theme);
+})();
+
+toggleBtn.onclick = function() {
+  const isDark = !document.documentElement.classList.contains("dark-mode");
+  setTheme(isDark ? "dark" : "light");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+};
+
