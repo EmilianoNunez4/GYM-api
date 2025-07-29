@@ -808,3 +808,55 @@ body.dark-mode .toggle-label {
     background: linear-gradient(90deg, #0f9b4b 60%, #16bb5d 100%);
     box-shadow: 0 2px 14px #c9eeda;
 }
+
+/* Caja de pago anterior (modo claro) */
+.pago-box {
+  background: #fff8e1;
+  border: 1px solid #e0c231;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  color: #333;
+  font-size: 1.02em;
+  line-height: 1.5;
+}
+
+/* Modo oscuro para caja de pagos */
+.dark-mode .pago-box {
+  background: #1e2536 !important;
+  border: 1px solid #ffc107 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+}
+
+/* INPUT MES DE PAGO*/
+/* Estilo para el input de monto */
+body #mes-pago {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #fff;
+  color: #333;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+/* Efecto al enfocar */
+#mes-pago:focus {
+  border-color: #3788fc;
+  box-shadow: 0 0 0 2px rgba(55, 136, 252, 0.2);
+}
+
+/* Modo oscuro */
+.dark-mode #mes-pago {
+  background-color: #2c3440;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+.dark-mode #mes-pago:focus {
+  border-color: #ffc107;
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.3);
+}

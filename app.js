@@ -68,34 +68,38 @@ async function obtenerPersonasEliminadas() {
 
 async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesRegistro) {
     const db = await openDB();
+
     if (!fechaAlta) {
         const hoy = new Date();
-        fechaAlta = hoy.toISOString().slice(0,10);
+        fechaAlta = hoy.toISOString().slice(0, 10);
     }
-    if (!mesRegistro) {
-        const hoy = new Date();
-        mesRegistro = hoy.toISOString().slice(0,7);
-    }
+
     const fechaHoraRegistro = new Date().toISOString();
+
     return new Promise((resolve, reject) => {
         const tx = db.transaction("personas", "readwrite");
         const store = tx.objectStore("personas");
-        const req = store.add({ 
-            nombre, 
-            actividad, 
-            fechaAlta, 
-            mesRegistro, 
-            fechaHoraRegistro, 
+
+        const req = store.add({
+            nombre,
+            actividad,
+            fechaAlta,
+            mesRegistro,
+            fechaHoraRegistro,
             montoInicial: montoInicial || null,
-            eliminado: false // <--- campo agregado
+            eliminado: false
         });
+
         req.onsuccess = async () => {
+            const personaId = req.result;
+
             if (montoInicial && montoInicial > 0) {
-                const personaId = req.result;
-                await agregarPago(personaId, mesRegistro, montoInicial, fechaHoraRegistro);
+                await agregarPago(personaId, montoInicial, fechaAlta, 30);
             }
-            resolve(req.result);
+
+            resolve(personaId);
         };
+
         req.onerror = () => reject(req.error);
     });
 }
@@ -121,13 +125,30 @@ async function obtenerPersonas() {
     });
 }
 
-async function agregarPago(personaId, mes, monto, fechaHoraManual = null) {
+async function agregarPago(personaId, monto, fechaPagoManual = null, diasDuracion = 30) {
     const db = await openDB();
-    const fechaHora = fechaHoraManual || new Date().toISOString();
+
+    // Fecha del pago
+    const fechaPago = fechaPagoManual || new Date().toISOString().slice(0, 10);
+
+    // Calcular vencimiento
+    const fechaVenc = new Date(fechaPago);
+    fechaVenc.setDate(fechaVenc.getDate() + diasDuracion);
+    const venceHasta = fechaVenc.toISOString().slice(0, 10);
+
     return new Promise((resolve, reject) => {
         const tx = db.transaction("pagos", "readwrite");
         const store = tx.objectStore("pagos");
-        const req = store.put({ personaId, mes, monto: parseFloat(monto), fechaHora });
+
+        const nuevoPago = {
+            personaId,
+            monto: parseFloat(monto),
+            fechaPago,
+            diasDuracion,
+            venceHasta
+        };
+
+        const req = store.add(nuevoPago);
         req.onsuccess = () => resolve();
         req.onerror = () => reject(req.error);
     });
@@ -174,25 +195,25 @@ function formatFechaHora(fechaISO) {
     return d.toLocaleDateString("es-AR") + " " + d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 }
 function estadoPagoColor(pagos) {
-    const mesActual = mesActualYYYYMM();
-    const hoy = new Date();
-    const año = hoy.getFullYear();
-    const mes = hoy.getMonth();
-    const ultimoDia = new Date(año, mes + 1, 0).getDate();
-    const diasRestantes = ultimoDia - hoy.getDate();
+    if (!pagos.length) {
+        return { texto: "En falta", color: "rojo", class: "estado-en-falta" };
+    }
 
-    // Ver si hay un pago para el mes actual o futuro
-    const estaAlDia = pagos.some(p => p.mes >= mesActual);
-    if (estaAlDia) {
+    const hoy = new Date();
+    const hoyStr = hoy.toISOString().slice(0, 10);
+
+    // Buscar el último vencimiento
+    const ultimoPago = pagos.sort((a, b) => b.venceHasta.localeCompare(a.venceHasta))[0];
+    const vence = new Date(ultimoPago.venceHasta);
+    const diffDias = Math.floor((vence - hoy) / (1000 * 60 * 60 * 24));
+
+    if (diffDias < 0) {
+        return { texto: "En falta", color: "rojo", class: "estado-en-falta" };
+    } else if (diffDias <= 5) {
+        return { texto: "Por vencer", color: "amarillo", class: "estado-por-vencer" };
+    } else {
         return { texto: "Al día", color: "verde", class: "estado-al-dia" };
     }
-
-    // Si no está al día, vemos si el mes está por vencer
-    if (diasRestantes <= 5) {
-        return { texto: "Por vencer", color: "amarillo", class: "estado-por-vencer" };
-    }
-
-    return { texto: "En falta", color: "rojo", class: "estado-en-falta" };
 }
 
 // --- UI Logic ---
@@ -406,7 +427,7 @@ buscadorNombre.addEventListener("input", refrescarCards);
 
 function abrirModalPago() {
     tituloModal.textContent = `Registrar pago para ${pagadorActual.nombre}`;
-    inputMesPago.value = mesActualYYYYMM();
+    inputMesPago.value = new Date().toISOString().slice(0, 10); // formato yyyy-mm-dd
     inputMontoPago.value = "";
     mostrarPagosAnteriores();
     modal.style.display = "block";
@@ -427,17 +448,41 @@ formPago.onsubmit = async function(e) {
         alert("Por favor, ingrese un monto válido.");
         return;
     }
-    await agregarPago(pagadorActual.id, mes, monto);
+    await agregarPago(pagadorActual.id, monto, inputMesPago.value);
+    await agregarPago(pagadorActual.id, monto);
     await refrescarCards();
     cerrarModalPago();
 };
+
+function fechaLarga(fechaISO) {
+    const meses = [
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    ];
+    const [y, m, d] = fechaISO.split("-");
+    return `${parseInt(d)} de ${meses[parseInt(m) - 1]} del ${y}`;
+}
+
 async function mostrarPagosAnteriores() {
     const pagos = await obtenerPagosPorPersona(pagadorActual.id);
     listaPagos.innerHTML = "";
-    pagos.sort((a, b) => b.mes.localeCompare(a.mes));
+    pagos.sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
     for (const p of pagos) {
         const li = document.createElement("li");
-        li.textContent = `${nombreMesEsp(p.mes)} — $${parseFloat(p.monto).toLocaleString()} — ${formatFechaHora(p.fechaHora)}`;
+        li.innerHTML = `
+            <div class="pago-box" style="
+                background: #fef9f1;
+                border: 1px solid #e0c231;
+                padding: 12px 16px;
+                margin-bottom: 8px;
+                border-radius: 12px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            ">
+                📅 <b>Pago:</b> ${fechaLarga(p.fechaPago)}<br>
+                💵 <b>Monto:</b> $${parseFloat(p.monto).toLocaleString()}<br>
+                🕓 <b>Válido hasta:</b> ${fechaLarga(p.venceHasta)}
+            </div>
+        `;
         listaPagos.appendChild(li);
     }
 }
