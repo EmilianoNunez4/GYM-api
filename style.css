@@ -1,7 +1,7 @@
 /* --- Fondo degradado naranja-azul --- */
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: linear-gradient(120deg, #ff9500 0%, #3788fc 100%);
+    background: linear-gradient(120deg, #f48200 0%, #e0c231 100%);
     margin: 0;
     min-height: 100vh;
     font-size: 1.16em;
@@ -11,7 +11,7 @@ body {
 /* --- Contenedor principal --- */
 .container {
     background: #fff;
-    max-width: 940px;
+    max-width: 1200px;
     margin: 42px auto 38px auto;
     border-radius: 22px;
     padding: 48px 36px 40px 36px;
@@ -26,7 +26,7 @@ body {
 .app-header {
     width: 100%;
     padding: 24px 0 22px 0;
-    background: linear-gradient(90deg,#ff9500 40%,#3788fc 100%);
+    background: linear-gradient(90deg,#ff8800 40%,#e0c231 100%);
     color: #fff;
     border-radius: 16px;
     text-align: center;
@@ -123,7 +123,7 @@ form#form-persona button {
     margin-top: 0;
 }
 form#form-persona button:hover {
-    background: linear-gradient(90deg, #e66900 60%, #194066 100%);
+    background: linear-gradient(90deg, #16bb5d  60%, #194066 100%);
     box-shadow: 0 3px 14px rgba(52,99,190,0.18);
 }
 
@@ -169,6 +169,22 @@ form#form-persona button:hover {
     box-shadow: 0 1px 8px rgba(22,187,93,0.08);
     letter-spacing: 0.04em;
 }
+#buscador-nombre {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid #ff9500;
+  background: #fff;
+  font-size: 1.05em;
+  color: #194066;
+  font-weight: 500;
+  min-width: 180px;
+  outline: none;
+}
+#buscador-nombre:focus {
+  border: 2px solid #3788fc;
+  box-shadow: 0 0 0 2px #ffe7ba;
+}
+
 
 /* Exportar Excel */
 #btn-exportar-excel {
@@ -192,11 +208,11 @@ form#form-persona button:hover {
 
 /* Cards: PC grid, móvil lista */
 .cards-container, #cards-baja-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 32px;
     margin-top: 22px;
-    justify-content: flex-start;
 }
 @media (max-width: 800px) {
     .cards-container, #cards-baja-list {
@@ -212,7 +228,7 @@ form#form-persona button:hover {
     box-shadow: 0 4px 20px rgba(0,0,0,0.16);
     padding: 28px 28px 20px 28px;
     min-width: 260px;
-    max-width: 340px;
+    max-width: 100%;
     border: 3px solid #ffe7ba;
     flex: 1 1 280px;
     display: flex;
@@ -424,16 +440,28 @@ form#form-pago button:hover {
     }
     form#form-persona input,
     form#form-persona select,
-    form#form-persona button,
-    #filtro-actividad {
+    form#form-persona button {
         min-width: 0;
         width: 100%;
         font-size: 1.02em;
     }
+
+    #filtro-actividad {
+        min-width: 180px;
+        max-width: 100%;
+        width: auto;
+        font-size: 1.02em;
+    }
+    .filtro-actividad-container {
+    justify-content: space-between;
+    align-items: center;
+}
+
+
     .modal-content {
         padding: 7vw 3vw;
-        max-width: 96vw;
-        font-size: 1em;
+        max-width: 88vw;
+        font-size: 0.9em;
     }
     .card-persona, .card-baja {
         padding: 16px 7vw 12px 7vw;
@@ -442,6 +470,57 @@ form#form-pago button:hover {
     .cards-container, #cards-baja-list {
         gap: 10px;
     }
+}
+
+
+#mensaje-no-encontrado {
+  text-align: center;
+  background: #ffe7e7;
+  border: 1px solid #e74c3c;
+  padding: 10px 16px;
+  border-radius: 12px;
+  color: #e74c3c;
+  font-weight: bold;
+  font-size: 1.08em;
+  margin: 10px auto 8px auto;
+  max-width: 420px;
+  box-shadow: 0 2px 8px rgba(231,76,60,0.15);
+}
+
+#form-pago input[type="month"],
+#form-pago input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid #dbe7fb;
+    font-size: 1.07em;
+    background: #fff;
+    color: #194066;
+    box-sizing: border-box;
+    margin-bottom: 14px;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+#form-pago input:focus {
+    border-color: #3788fc;
+    box-shadow: 0 0 0 2px #ffe7ba;
+    outline: none;
+}
+
+form#form-pago button {
+    background: linear-gradient(90deg, #3788fc 60%, #1d6ed6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 12px 28px;
+    font-size: 1.13em;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 18px;
+    box-shadow: 0 2px 9px rgba(52,99,190,0.10);
+}
+form#form-pago button:hover {
+    background: linear-gradient(90deg, #2663b8 60%, #194066 100%);
 }
 
 
@@ -617,4 +696,115 @@ select,
     background: linear-gradient(120deg, #181c20 0%, #23395d 100%) !important;
     color: #fff !important;
     border: 1px solid #333 !important;
+}
+.dark-mode #buscador-nombre{
+    background-color: #181c20;
+    border-color: white;
+    color: white;
+}
+/* --- Toggle switch dark mode estético tipo iOS --- */
+.toggle-switch {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 12px;
+}
+.toggle-switch input[type="checkbox"] {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #222;
+  border-radius: 32px;
+  transition: background 0.3s;
+  border: 2px solid #222;
+}
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  background: #f48200 ;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: #fff;
+  border: 2px solid #ffffff;
+}
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+  background: #213b62 ;
+}
+.toggle-label {
+  font-size: 1.13em;
+  font-weight: bold;
+  color: #ccc;
+  letter-spacing: 0.03em;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin-left: 8px;
+  vertical-align: middle;
+  user-select: none;
+}
+body:not(.dark-mode) .toggle-label {
+  color: #333;
+}
+body.dark-mode .toggle-label {
+  color: #ccc;
+}
+
+/* CARD DE VER REGISTROS */
+.dark-mode #form-pago input[type="month"],
+.dark-mode #form-pago input[type="number"] {
+  background: #1e2536;
+  color: #fff;
+  border: 2px solid #23395d;
+}
+
+.dark-mode #form-pago input::placeholder {
+  color: #ccc;
+}
+
+.dark-mode #titulo-modal {
+  color: #fff !important;
+}
+
+.dark-mode #form-pago label {
+  color: #fff !important;
+}
+
+.dark-mode .modal-content {
+  background-color: #222e3c !important;
+  border: 1px solid #444 !important;
+}
+
+/* BOTON DADO DE ALTA*/
+
+.card-persona .btn-alta {
+    background: linear-gradient(90deg, #16bb5d 60%, #0f9b4b 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 1.11em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 7px;
+    transition: background 0.16s, box-shadow 0.14s;
+    box-shadow: 0 1px 6px rgba(52,99,190,0.12);
+}
+.card-persona .btn-alta:hover {
+    background: linear-gradient(90deg, #0f9b4b 60%, #16bb5d 100%);
+    box-shadow: 0 2px 14px #c9eeda;
 }

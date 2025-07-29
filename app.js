@@ -175,17 +175,24 @@ function formatFechaHora(fechaISO) {
 }
 function estadoPagoColor(pagos) {
     const mesActual = mesActualYYYYMM();
-    const pagoMesActual = pagos.find(p => p.mes === mesActual);
-    if (!pagoMesActual) return { texto: "En falta", color: "rojo", class: "estado-en-falta" };
     const hoy = new Date();
     const año = hoy.getFullYear();
     const mes = hoy.getMonth();
     const ultimoDia = new Date(año, mes + 1, 0).getDate();
     const diasRestantes = ultimoDia - hoy.getDate();
+
+    // Ver si hay un pago para el mes actual o futuro
+    const estaAlDia = pagos.some(p => p.mes >= mesActual);
+    if (estaAlDia) {
+        return { texto: "Al día", color: "verde", class: "estado-al-dia" };
+    }
+
+    // Si no está al día, vemos si el mes está por vencer
     if (diasRestantes <= 5) {
         return { texto: "Por vencer", color: "amarillo", class: "estado-por-vencer" };
     }
-    return { texto: "Al día", color: "verde", class: "estado-al-dia" };
+
+    return { texto: "En falta", color: "rojo", class: "estado-en-falta" };
 }
 
 // --- UI Logic ---
@@ -197,6 +204,7 @@ const inputFechaAlta = document.getElementById("fecha-alta");
 const inputMesRegistro = document.getElementById("mes-registro");
 const cardsPersonas = document.getElementById("cards-personas");
 const filtroActividad = document.getElementById("filtro-actividad");
+const buscadorNombre = document.getElementById("buscador-nombre");
 const totalPersonas = document.getElementById("total-personas");
 
 const modal = document.getElementById("modal-pago");
@@ -260,7 +268,35 @@ async function refrescarCardsBaja() {
                     `).join("")}
                 </ul>
             </div>
+            <div class="card-actions">
+              <button class="btn-alta" data-id="${persona.id}">Dar de alta</button>
+            </div>
         `;
+      div.querySelector(".btn-alta").onclick = async () => {
+        const resultado = await Swal.fire({
+            title: `¿Reactivar a ${persona.nombre}?`,
+            text: "Esta persona volverá a figurar como activa",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Sí, reactivar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#16bb5d",
+            cancelButtonColor: "#e74c3c"
+        });
+
+        if (resultado.isConfirmed) {
+            await marcarPersonaActiva(persona.id);
+            await refrescarCards();
+
+            Swal.fire({
+                title: "Reactivado",
+                text: `${persona.nombre} volvió a estar activo.`,
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    };
         cardsBajaList.appendChild(div);
     }
 }
@@ -269,15 +305,32 @@ async function refrescarCardsBaja() {
 async function refrescarCards() {
     const personas = await obtenerPersonas();
     // Filtrado:
-    const actividadSeleccionada = filtroActividad.value;
-    let personasFiltradas = personas;
-    if (actividadSeleccionada) {
-        personasFiltradas = personas.filter(p => p.actividad === actividadSeleccionada);
-    }
+    const actividadSeleccionada = filtroActividad.value.trim().toLowerCase();
+    const nombreBuscado = buscadorNombre.value.trim().toLowerCase();
+
+    let personasFiltradas = personas.filter(p => {
+        const actividadPersona = (p.actividad || "").toLowerCase();
+        const nombrePersona = (p.nombre || "").toLowerCase();
+
+        const coincideActividad = !actividadSeleccionada || actividadPersona === actividadSeleccionada;
+        const coincideNombre = !nombreBuscado || nombrePersona.includes(nombreBuscado);
+
+        return coincideActividad && coincideNombre;
+    });
+
+
     // Mostrar total
     totalPersonas.textContent = `Total: ${personasFiltradas.length}`;
     // Render cards
     cardsPersonas.innerHTML = "";
+    const mensajeNoEncontrado = document.getElementById("mensaje-no-encontrado");
+    const hayFiltrosActivos = actividadSeleccionada || nombreBuscado;
+    if (hayFiltrosActivos && personasFiltradas.length === 0) {
+        mensajeNoEncontrado.style.display = "block";
+    } else {
+        mensajeNoEncontrado.style.display = "none";
+    }
+
     for (const persona of personasFiltradas) {
         const pagos = await obtenerPagosPorPersona(persona.id);
         const estado = estadoPagoColor(pagos);
@@ -301,9 +354,28 @@ async function refrescarCards() {
         };
         // NUEVO: botón dar de baja
         div.querySelector(".btn-baja").onclick = async () => {
-            if (confirm("¿Seguro que quieres dar de baja a esta persona?")) {
+            const resultado = await Swal.fire({
+                title: `¿Dar de baja a ${persona.nombre}?`,
+                text: "Esta persona pasará a la lista de bajas.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí, dar de baja",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#e74c3c",
+                cancelButtonColor: "#3788fc"
+            });
+
+            if (resultado.isConfirmed) {
                 await marcarPersonaEliminada(persona.id);
                 await refrescarCards();
+
+                Swal.fire({
+                    title: "Dado de baja",
+                    text: `${persona.nombre} fue movido a la lista de bajas.`,
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }
         };
         cardsPersonas.appendChild(div);
@@ -330,6 +402,7 @@ formPersona.onsubmit = async function(e) {
     refrescarCards();
 };
 filtroActividad.addEventListener("change", refrescarCards);
+buscadorNombre.addEventListener("input", refrescarCards);
 
 function abrirModalPago() {
     tituloModal.textContent = `Registrar pago para ${pagadorActual.nombre}`;
@@ -421,17 +494,18 @@ document.getElementById("btn-exportar-excel").onclick = async function() {
 const toggleBtn = document.getElementById("toggle-dark");
 
 // Función para actualizar el ícono del botón
-function updateToggleIcon(isDark) {
-  toggleBtn.textContent = isDark ? "☀️" : "🌙";
-}
+const toggleCheckbox = document.getElementById("toggle-dark");
+const toggleModeLabel = document.getElementById("toggle-mode-label");
 
 function setTheme(theme) {
   if (theme === "dark") {
     document.documentElement.classList.add("dark-mode");
-    updateToggleIcon(true);
+    toggleCheckbox.checked = true;
+    toggleModeLabel.textContent = "";
   } else {
     document.documentElement.classList.remove("dark-mode");
-    updateToggleIcon(false);
+    toggleCheckbox.checked = false;
+    toggleModeLabel.textContent = "";
   }
 }
 
@@ -439,15 +513,36 @@ function setTheme(theme) {
 (function() {
   let theme = localStorage.getItem("theme");
   if (!theme) {
-    // Si no hay preferencia, usa la del sistema
     theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
   setTheme(theme);
 })();
 
-toggleBtn.onclick = function() {
-  const isDark = !document.documentElement.classList.contains("dark-mode");
+toggleCheckbox.addEventListener("change", function() {
+  const isDark = toggleCheckbox.checked;
   setTheme(isDark ? "dark" : "light");
   localStorage.setItem("theme", isDark ? "dark" : "light");
-};
+});
 
+/* VOLVER A DAR DE ALTA USUARIO BAJADO*/
+
+async function marcarPersonaActiva(personaId) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("personas", "readwrite");
+        const store = tx.objectStore("personas");
+        const req = store.get(personaId);
+        req.onsuccess = function() {
+            const persona = req.result;
+            if (persona) {
+                persona.eliminado = false;
+                const updateReq = store.put(persona);
+                updateReq.onsuccess = () => resolve();
+                updateReq.onerror = () => reject(updateReq.error);
+            } else {
+                reject("No se encontró la persona.");
+            }
+        };
+        req.onerror = () => reject(req.error);
+    });
+}
