@@ -495,46 +495,139 @@ if ("serviceWorker" in navigator) {
 
 refrescarCards();
 
-document.getElementById("btn-exportar-excel").onclick = async function() {
-    const personas = await obtenerPersonas();
+document.getElementById("btn-exportar-excel").onclick = async function () {
+    const personas = await obtenerPersonas(); // Todas
+    const eliminadas = personas.filter(p => p.eliminado);
+    const activas = personas.filter(p => !p.eliminado);
+
     let pagosPorPersona = {};
     for (const persona of personas) {
         pagosPorPersona[persona.id] = await obtenerPagosPorPersona(persona.id);
     }
+
     let data = [];
-    for (const persona of personas) {
+
+    const filaEncabezadoActivos = [
+        "Nombre", "Actividad", "Fecha de alta", "Monto inicial", 
+        "Pago - Fecha", "Pago - Monto", "Pago - Válido hasta"
+    ];
+    const filaEncabezadoEliminados = [...filaEncabezadoActivos];
+
+    const inicioActivos = 1; // fila 1 = segunda (después del título)
+    const inicioEliminados = activas.length + 4; // estimado para aplicar estilo
+
+    // 🟢 Tabla activos
+    data.push(["🏋️ Personas activas"]);
+    data.push(filaEncabezadoActivos);
+
+    for (const persona of activas) {
         const pagos = pagosPorPersona[persona.id];
         if (!pagos.length) {
-            data.push({
-                "Nombre": persona.nombre,
-                "Actividad": persona.actividad || "",
-                "Fecha de alta": formatFecha(persona.fechaAlta),
-                "Mes de registro": nombreMesEsp(persona.mesRegistro),
-                "Monto inicial": persona.montoInicial != null ? persona.montoInicial : "",
-                "Pago - Mes pagado": "",
-                "Pago - Monto pagado": "",
-                "Pago - Fecha y hora": ""
-            });
+            data.push([
+                persona.nombre,
+                persona.actividad || "",
+                formatFecha(persona.fechaAlta),
+                persona.montoInicial != null ? persona.montoInicial : "",
+                "", "", ""
+            ]);
         } else {
             for (const pago of pagos) {
-                data.push({
-                    "Nombre": persona.nombre,
-                    "Actividad": persona.actividad || "",
-                    "Fecha de alta": formatFecha(persona.fechaAlta),
-                    "Mes de registro": nombreMesEsp(persona.mesRegistro),
-                    "Monto inicial": persona.montoInicial != null ? persona.montoInicial : "",
-                    "Pago - Mes pagado": nombreMesEsp(pago.mes),
-                    "Pago - Monto pagado": pago.monto,
-                    "Pago - Fecha y hora": formatFechaHora(pago.fechaHora)
-                });
+                data.push([
+                    persona.nombre,
+                    persona.actividad || "",
+                    formatFecha(persona.fechaAlta),
+                    persona.montoInicial != null ? persona.montoInicial : "",
+                    formatFecha(pago.fechaPago),
+                    pago.monto,
+                    formatFecha(pago.venceHasta)
+                ]);
             }
         }
     }
-    const ws = XLSX.utils.json_to_sheet(data);
+
+    // 🔴 Tabla eliminados
+    if (eliminadas.length > 0) {
+        data.push([]); // espacio vacío
+        data.push(["❌ Personas eliminadas"]);
+        data.push(filaEncabezadoEliminados);
+
+        for (const persona of eliminadas) {
+            const pagos = pagosPorPersona[persona.id];
+            if (!pagos.length) {
+                data.push([
+                    persona.nombre,
+                    persona.actividad || "",
+                    formatFecha(persona.fechaAlta),
+                    persona.montoInicial != null ? persona.montoInicial : "",
+                    "", "", ""
+                ]);
+            } else {
+                for (const pago of pagos) {
+                    data.push([
+                        persona.nombre,
+                        persona.actividad || "",
+                        formatFecha(persona.fechaAlta),
+                        persona.montoInicial != null ? persona.montoInicial : "",
+                        formatFecha(pago.fechaPago),
+                        pago.monto,
+                        formatFecha(pago.venceHasta)
+                    ]);
+                }
+            }
+        }
+    }
+    // Agregar línea final con la fecha y hora actual
+    const ahora = new Date();
+    const fechaHoraStr = ahora.toLocaleDateString() + " " + ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    data.push([]);
+    data.push([`🕓 Exportado el ${fechaHoraStr}`]);
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    // 🎨 Estilos por fila
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; R++) {
+        const cellCount = data[R]?.length || 0;
+        if (cellCount >= 5) {
+            for (let C = 0; C < cellCount; C++) {
+                const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!ws[cellAddress]) continue;
+
+                // Estilo para encabezado de activos
+                if (R === inicioActivos) {
+                    ws[cellAddress].s = {
+                        fill: { fgColor: { rgb: "FFF8DC" } }, // beige claro
+                        font: { bold: true }
+                    };
+                }
+
+                // Estilo para encabezado de eliminados
+                if (R === inicioEliminados) {
+                    ws[cellAddress].s = {
+                        fill: { fgColor: { rgb: "FFE4E1" } }, // rosa claro
+                        font: { bold: true }
+                    };
+                }
+            }
+        }
+    }
+
+    // 📐 Ajustar ancho de columnas
+    ws['!cols'] = [
+        { wch: 20 }, // Nombre
+        { wch: 20 }, // Actividad
+        { wch: 15 }, // Alta
+        { wch: 15 }, // Monto
+        { wch: 15 }, // Fecha pago
+        { wch: 15 }, // Monto
+        { wch: 18 }  // Vence hasta
+    ];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Gimnasio");
+
     XLSX.writeFile(wb, "gimnasio_registros.xlsx");
 };
+
 
 const toggleBtn = document.getElementById("toggle-dark");
 
