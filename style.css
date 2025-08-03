@@ -221,6 +221,47 @@ form#form-persona button:hover {
     }
 }
 
+/* INPUT TELEFONO*/
+input[type="tel"] {
+        padding: 9px 12px;
+    border-radius: 10px;
+    border: 2px solid #dbe7fb;
+    background: #f8fbff;
+    outline: none;
+    font-size: 1.09em;
+    transition: border 0.2s, box-shadow 0.2s;
+    min-width: 180px;
+    flex: 1 1 65px;
+    box-sizing: border-box;
+    margin-bottom: 7px;
+}
+
+input[type="tel"]:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 3px #3498db33;
+}
+
+
+/* boton ver pagos Us dado de baja*/
+.card-actions .btn-ver-pagos {
+    background: linear-gradient(90deg, #25abed 60%, #158de2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 1.11em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 7px;
+    transition: background 0.16s, box-shadow 0.14s;
+    box-shadow: 0 1px 6px rgba(52, 99, 190, 0.12);
+}
+
+.card-actions .btn-ver-pagos:hover {
+    background-color: #2980b9;
+}
+
 /* Card estilo moderno */
 .card-persona, .card-baja {
     background: linear-gradient(120deg, #ffe8c7 0%, #e3efff 100%);

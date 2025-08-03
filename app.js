@@ -278,23 +278,53 @@ async function refrescarCardsBaja() {
             <span class="estado-label" style="background:#ccc;color:#444;">Dado de baja</span>
             <div><b>Nombre:</b> ${persona.nombre}</div>
             <div><b>Actividad:</b> ${persona.actividad || ""}</div>
+            <div><b>Teléfono:</b> ${persona.telefono || "-"}</div>
             <div><b>Fecha alta:</b> ${formatFecha(persona.fechaAlta)}</div>
             <div><b>Mes de registro:</b> ${nombreMesEsp(persona.mesRegistro)}</div>
             ${persona.montoInicial ? `<div><b>Monto inicial:</b> $${parseFloat(persona.montoInicial).toLocaleString()}</div>` : ""}
             <div style="margin-top:8px;">
-                <b>Cuotas abonadas:</b>
-                <ul style="margin:0;padding-left:20px;">
-                    ${pagos.length === 0 ? "<li style='color:#bbb;'>Sin pagos</li>" : pagos.map(pago => `
-                        <li>
-                          ${nombreMesEsp(pago.mes)} — $${parseFloat(pago.monto).toLocaleString()} — ${formatFechaHora(pago.fechaHora)}
-                        </li>
-                    `).join("")}
-                </ul>
             </div>
             <div class="card-actions">
               <button class="btn-alta" data-id="${persona.id}">Dar de alta</button>
             </div>
         `;
+        // Botón para ver pagos
+        const btnVerPagos = document.createElement("button");
+        btnVerPagos.textContent = "Ver Pagos";
+        btnVerPagos.classList.add("btn-ver-pagos");
+        btnVerPagos.onclick = async () => {
+            const pagos = await obtenerPagosPorPersona(persona.id);
+            if (!pagos.length) {
+                Swal.fire({
+                    title: "Sin pagos registrados",
+                    text: `${persona.nombre} no tiene pagos cargados.`,
+                    icon: "info"
+                });
+                return;
+            }
+
+            pagos.sort((a, b) => new Date(a.fechaPago) - new Date(b.fechaPago)); // orden cronológico
+
+            let contenido = `
+                <div style="text-align:left;">
+                ${pagos.map((p, i) => `
+                    <b>Pago N° ${i + 1}.</b><br>
+                    🗓️ Fecha: <b>${formatFecha(p.fechaPago)}</b><br>
+                    💰 Monto: $${p.monto.toLocaleString()}<br>
+                    ⏳ Válido hasta: ${formatFecha(p.venceHasta)}<br><br>
+                `).join("")}
+                </div>
+            `;
+
+            Swal.fire({
+                title: `Pagos de ${persona.nombre}`,
+                html: contenido,
+                width: 420,
+                confirmButtonText: "Cerrar"
+            });
+        };
+
+    div.querySelector(".card-actions").appendChild(btnVerPagos);
       div.querySelector(".btn-alta").onclick = async () => {
         const resultado = await Swal.fire({
             title: `¿Reactivar a ${persona.nombre}?`,
@@ -345,66 +375,68 @@ async function refrescarCards() {
     // Mostrar total
     totalPersonas.textContent = `Total: ${personasFiltradas.length}`;
     // Render cards
-    cardsPersonas.innerHTML = "";
-    const mensajeNoEncontrado = document.getElementById("mensaje-no-encontrado");
-    const hayFiltrosActivos = actividadSeleccionada || nombreBuscado;
-    if (hayFiltrosActivos && personasFiltradas.length === 0) {
-        mensajeNoEncontrado.style.display = "block";
-    } else {
-        mensajeNoEncontrado.style.display = "none";
-    }
+   cardsPersonas.innerHTML = "";
+const mensajeNoEncontrado = document.getElementById("mensaje-no-encontrado");
+const hayFiltrosActivos = actividadSeleccionada || nombreBuscado;
+if (hayFiltrosActivos && personasFiltradas.length === 0) {
+    mensajeNoEncontrado.style.display = "block";
+} else {
+    mensajeNoEncontrado.style.display = "none";
+}
 
-    for (const persona of personasFiltradas) {
-        const pagos = await obtenerPagosPorPersona(persona.id);
-        const estado = estadoPagoColor(pagos);
-        const div = document.createElement("div");
-        div.className = `card-persona ${estado.class}`;
-        div.innerHTML = `
-            <span class="estado-label ${estado.color}">${estado.texto}</span>
-            <div><b>Nombre:</b> ${persona.nombre}</div>
-            <div><b>Actividad:</b> ${persona.actividad || ""}</div>
-            <div><b>Fecha alta:</b> ${formatFecha(persona.fechaAlta)}</div>
-            <div><b>Mes de registro:</b> ${nombreMesEsp(persona.mesRegistro)}</div>
-            ${persona.montoInicial ? `<div><b>Monto inicial:</b> $${parseFloat(persona.montoInicial).toLocaleString()}</div>` : ""}
-            <div class="card-actions">
-                <button data-id="${persona.id}" data-nombre="${persona.nombre}">Registrar Pago / Ver Pagos</button>
-                <button data-id="${persona.id}" class="btn-baja">Dar de baja</button>
-            </div>
-        `;
-        div.querySelector("button[data-nombre]").onclick = () => {
-            pagadorActual = { id: persona.id, nombre: persona.nombre };
-            abrirModalPago();
-        };
-        // NUEVO: botón dar de baja
-        div.querySelector(".btn-baja").onclick = async () => {
-            const resultado = await Swal.fire({
-                title: `¿Dar de baja a ${persona.nombre}?`,
-                text: "Esta persona pasará a la lista de bajas.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Sí, dar de baja",
-                cancelButtonText: "Cancelar",
-                confirmButtonColor: "#e74c3c",
-                cancelButtonColor: "#3788fc"
+for (const persona of personasFiltradas) {
+    const pagos = await obtenerPagosPorPersona(persona.id);
+    const estado = estadoPagoColor(pagos);
+    const div = document.createElement("div");
+    div.className = `card-persona ${estado.class}`;
+    div.innerHTML = `
+        <span class="estado-label ${estado.color}">${estado.texto}</span>
+        <div><b>Nombre:</b> ${persona.nombre}</div>
+        <div><b>Actividad:</b> ${persona.actividad || ""}</div>
+        <div><b>Teléfono:</b> ${persona.telefono || "-"}</div>
+        <div><b>Fecha alta:</b> ${formatFecha(persona.fechaAlta)}</div>
+        <div><b>Mes de registro:</b> ${nombreMesEsp(persona.mesRegistro)}</div>
+        ${persona.montoInicial ? `<div><b>Monto inicial:</b> $${parseFloat(persona.montoInicial).toLocaleString()}</div>` : ""}
+        <div class="card-actions">
+            <button data-id="${persona.id}" data-nombre="${persona.nombre}">Registrar Pago / Ver Pagos</button>
+            <button data-id="${persona.id}" class="btn-baja">Dar de baja</button>
+        </div>
+    `;
+    div.querySelector("button[data-nombre]").onclick = () => {
+        pagadorActual = { id: persona.id, nombre: persona.nombre };
+        abrirModalPago();
+    };
+
+    // Botón dar de baja
+    div.querySelector(".btn-baja").onclick = async () => {
+        const resultado = await Swal.fire({
+            title: `¿Dar de baja a ${persona.nombre}?`,
+            text: "Esta persona pasará a la lista de bajas.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, dar de baja",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#e74c3c",
+            cancelButtonColor: "#3788fc"
+        });
+
+        if (resultado.isConfirmed) {
+            await marcarPersonaEliminada(persona.id);
+            await refrescarCards();
+
+            Swal.fire({
+                title: "Dado de baja",
+                text: `${persona.nombre} fue movido a la lista de bajas.`,
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
             });
-
-            if (resultado.isConfirmed) {
-                await marcarPersonaEliminada(persona.id);
-                await refrescarCards();
-
-                Swal.fire({
-                    title: "Dado de baja",
-                    text: `${persona.nombre} fue movido a la lista de bajas.`,
-                    icon: "success",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            }
-        };
-        cardsPersonas.appendChild(div);
-    }
-    // Actualiza la sección de bajas
-    await refrescarCardsBaja();
+        }
+    };
+    cardsPersonas.appendChild(div);
+}
+// Actualiza la sección de bajas
+await refrescarCardsBaja();
 }
 
 formPersona.onsubmit = async function(e) {
@@ -413,13 +445,15 @@ formPersona.onsubmit = async function(e) {
     const actividad = inputActividad.value.trim();
     const montoInicial = parseFloat(inputMontoInicial.value);
     const fechaAlta = inputFechaAlta.value;
+    const telefono = inputTelefono.value.trim();
     const mesRegistro = inputMesRegistro.value;
     if (!nombre) { alert("Ingrese el nombre."); return; }
     if (!actividad) { alert("Seleccione o ingrese la actividad."); return; }
-    await agregarPersona(nombre, actividad, isNaN(montoInicial) ? null : montoInicial, fechaAlta, mesRegistro);
+    await agregarPersona(nombre, actividad, isNaN(montoInicial) ? null : montoInicial, fechaAlta, mesRegistro, telefono);
     inputNombre.value = "";
     inputActividad.value = "";
     inputMontoInicial.value = "";
+    inputTelefono.value = "";
     inputFechaAlta.value = new Date().toISOString().slice(0,10);
     inputMesRegistro.value = new Date().toISOString().slice(0,7);
     refrescarCards();
