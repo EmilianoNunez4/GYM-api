@@ -351,6 +351,8 @@ input[type="tel"]:focus {
     margin-top: 7px;
     transition: background 0.16s, box-shadow 0.14s;
     box-shadow: 0 1px 6px rgba(52,99,190,0.12);
+    display: block;
+    width: 100%;
 }
 .card-persona button[data-nombre]:hover {
     background: linear-gradient(90deg, #0f9b4b 60%, #16bb5d 100%);
@@ -370,6 +372,8 @@ input[type="tel"]:focus {
     margin-top: 7px;
     transition: background 0.16s, box-shadow 0.14s;
     box-shadow: 0 1px 6px rgba(52,99,190,0.12);
+    display: block;
+    width: 100%;
 }
 .card-persona .btn-baja:hover {
     background: linear-gradient(90deg, #c0392b 60%, #e74c3c 100%);
