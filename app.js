@@ -451,7 +451,6 @@ formPago.onsubmit = async function(e) {
         return;
     }
     await agregarPago(pagadorActual.id, monto, inputMesPago.value);
-    await agregarPago(pagadorActual.id, monto);
     await refrescarCards();
     cerrarModalPago();
 };

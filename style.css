@@ -370,7 +370,8 @@ form#form-persona button:hover {
     margin-top: -10px;
 }
 .close:hover, .close:focus { color: #e74c3c; }
-label { display: block; margin: 10px 0 8px 0; color: #ffffff; font-weight: 600;}
+label { display: block; margin: 10px 0 8px 0; color: #232323; font-weight: 600;}
+.dark-mode label{ color: #ffffff; }
 input[type="month"], input[type="number"] {
     margin-bottom: 12px;
 }
@@ -860,3 +861,4 @@ body #mes-pago {
   border-color: #ffc107;
   box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.3);
 }
+
