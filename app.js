@@ -66,7 +66,7 @@ async function obtenerPersonasEliminadas() {
     });
 }
 
-async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesRegistro) {
+async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesRegistro, telefono) {
     const db = await openDB();
 
     if (!fechaAlta) {
