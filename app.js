@@ -83,6 +83,7 @@ async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesReg
         const req = store.add({
             nombre,
             actividad,
+            telefono,
             fechaAlta,
             mesRegistro,
             fechaHoraRegistro,
@@ -103,6 +104,7 @@ async function agregarPersona(nombre, actividad, montoInicial, fechaAlta, mesReg
         req.onerror = () => reject(req.error);
     });
 }
+
 
 // ------ MODIFICADO: obtenerPersonas solo muestra no eliminadas ------
 async function obtenerPersonas() {
